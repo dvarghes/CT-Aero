@@ -1,7 +1,7 @@
 # Product Requirements Document
 
 **Product:** Line Maintenance Assignment  
-**Working title:** Assignment  
+**Working title:** CT-Aero  
 **Document type:** Product Requirements Document (PRD)  
 **Version:** 1.1  
 **Status:** Draft  
@@ -16,7 +16,7 @@
 
 CT-Aero is a SaaS product for airline and MRO **line maintenance production planning and execution**. It replaces the current practice of jumping between an M&E system, a Flight Ops system, an HR/roster tool, and spreadsheets.
 
-Planners land on a **bird’s-eye dashboard** (Control tower) that summarises the current slice of the operation: volume, risk, staffing fill, and alerts. From there they open a turnaround and work the plan. An optimisation engine (and later agentic AI) drafts task sequences and technician assignments. Supervisors review and override. Technicians receive a personal schedule on mobile or tablet and report progress from the apron.
+Planners land on a **bird’s-eye dashboard** (Control tower) that summarises the current slice of the operation: volume, risk, staffing fill, and alerts. From there they open a turnaround and work the plan. An optimisation engine (and later agentic AI) drafts task sequences and technician assignments. Supervisors review and override. Technicians receive a personal schedule on mobile or tablet and report progress from the flight doorway.
 
 
 ---
@@ -341,7 +341,7 @@ Landing route is `/`. Layout is **vertical bands**, not a horizontal board. Full
 
 ### 8.6 Technician mobile / tablet
 
-**Purpose:** Personal schedule that survives the apron.
+**Purpose:** Viewing his/her work schedule.
 
 | ID | Priority | Requirement |
 | --- | --- | --- |
@@ -492,40 +492,35 @@ Failure behaviour: show last good data + banner; do not wipe the working plan.
 
 ## 13. Release plan
 
-### Phase 0 — Design partner slice (6–8 weeks)
+This plan matches the application as built. Work that an earlier draft scheduled for a later phase, and that is already in the product, is listed as shipped.
 
-- One station, one fleet family
-- Carbon g90 vertical shell + slicer menus
-- Control tower landing dashboard (KPIs, two charts, attention list)
-- Manual assign + publish
-- Technician list (web responsive acceptable)
-- Simulated Flight Ops + M&E feeds
-- Verified in Chrome at 1440×900 and 1280×800
+### Shipped — current desktop build
 
-### Phase 1 — MVP
+Mock M&E, Flight Ops, and HR feeds. No live integrations. Chrome at 1440×900 and 1280×800, no horizontal page scroll.
 
-- Real integrations (one M&E, one Flight Ops, one roster)
-- Gantt sequencing + conflict engine
-- Generate schedule (rules / optimiser, not necessarily LLM)
-- Alerts + single-visit replan
-- Native-quality mobile PWA or iOS/Android
-- Audit + roles
+- Carbon g90 vertical shell, 256px SideNav, slicers on every route, session and URL
+- Three stations (HEL, FRA, MUC) and three fleets (A320 family, A330, B737)
+- Control tower: KPI tiles, status mix, capacity, attention list, search, sync ages, compact window list
+- Planner: work-package tasks, Gantt inside the ground window, drag-and-drop, rules-based Generate, constraint chips, conflict list, parts and tools gate, license override, states Draft → Ready → Published → Locked → Completed, version diff, notes, rules-based instruction suggestions
+- Workforce: roster, filter chips, workload, drag-and-drop and pick-list assignment, auto-allocate, balance, rest and qualification warnings, double-book visibility, team-lead view, shift coverage editor, fairness hints
 
-### Phase 2 — v1
+### Next — remaining P0
 
-- Before/after replan compare
-- Capacity heatmap and 14-day horizon
-- Parts/tools check
-- Reports
-- Version history
+- Alert inbox and single-visit replan: proposal, before/after, accept or reject, then publish
+- Live progress and time capture on the visit
+- Technician mobile or tablet: personal task list, targets at least 44px, offline queue
+- Generate explains why each person was or was not assigned
+- Admin: stations, skills and licenses, roles, SSO, audit log
+- One real M&E feed, one Flight Ops feed, and one roster feed in place of the mock data
 
-### Phase 3 — v1.2 differentiators
+### Later — v1 and v1.2
 
-- Agentic instruction enrichment
-- Actuals learning
-- Multi-station control tower
-- Base-maintenance long-visit mode
-- What-if scenarios
+- Capacity heatmap and a 14–90 day horizon calendar
+- Planning, operations, and people reports, with CSV export
+- Actual durations feeding estimate changes
+- Agentic rewrite of job-card text, station playbooks, what-if, and batch replan
+- Saved dashboard views per role
+- Base-maintenance long-visit mode on the same plan canvas
 
 ---
 
@@ -536,7 +531,7 @@ Failure behaviour: show last good data + banner; do not wipe the working plan.
 | M&E work-card quality is poor (huge cards, no skills) | Instruction-enrichment + customer mapping workshop; do not pretend dirty data is fine |
 | Unions / works councils reject digital allocation | Fairness reports, transparent rules, human publish step |
 | Optimiser not trusted | Explanations and easy override; start with rules |
-| Apron connectivity | Offline mobile queue |
+| Poor Wifi connectivity | Offline mobile queue |
 | Scope creep into full M&E | Hard non-goal; deep links out to source system |
 | Latency of flight data | SLA with OCC integration; banner when feed is late |
 
