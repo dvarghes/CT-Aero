@@ -1,0 +1,28 @@
+{
+  "name": "assignment",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "dev": "node scripts/run.cjs",
+    "build": "node scripts/run.cjs build",
+    "preview": "node scripts/run.cjs preview"
+  },
+  "dependencies": {
+    "@carbon/charts": "1.27.20",
+    "@carbon/charts-react": "1.27.20",
+    "@carbon/icons-react": "11.89.0",
+    "@carbon/react": "1.117.0",
+    "@carbon/styles": "1.116.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router-dom": "7.18.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.1.1",
+    "vite": "8.3.0"
+  }
+}
