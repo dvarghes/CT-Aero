@@ -6,8 +6,7 @@
 **Version:** 1.1  
 **Status:** Draft  
 **Date:** 24 September 2026  
-**Owner:** Product  
-**Inspired by:** QOCO Assignment (line-maintenance production planning)  
+**Owner:** Product    
 **Design system:** IBM Carbon v11, theme Gray 90 (`g90`)  
 **Layout spec:** `layouts/00-ui-shell.md`
 
@@ -15,11 +14,10 @@
 
 ## 1. Summary
 
-Assignment is a SaaS product for airline and MRO **line maintenance production planning and execution**. It replaces the current practice of jumping between an M&E system, a Flight Ops system, an HR/roster tool, and spreadsheets.
+CT-Aero is a SaaS product for airline and MRO **line maintenance production planning and execution**. It replaces the current practice of jumping between an M&E system, a Flight Ops system, an HR/roster tool, and spreadsheets.
 
 Planners land on a **bird’s-eye dashboard** (Control tower) that summarises the current slice of the operation: volume, risk, staffing fill, and alerts. From there they open a turnaround and work the plan. An optimisation engine (and later agentic AI) drafts task sequences and technician assignments. Supervisors review and override. Technicians receive a personal schedule on mobile or tablet and report progress from the apron.
 
-The desktop UI is a **vertical operations console**: left SideNav for destinations and slicers, stacked dashboard bands on `/`, no horizontal primary navigation. It must be fully usable in **Chrome on a MacBook** at 1440×900 and 1280×800 with no horizontal page scroll. Visual system is Carbon **g90** with default IBM Blue interactive tokens.
 
 ---
 
@@ -44,7 +42,7 @@ This causes low wrench time, maintenance-driven delays, supervisor overload, and
 
 ### 3.1 Product goals
 
-1. Give planners a **bird’s-eye landing dashboard** plus **one visual plan** that already combines Flight Ops, M&E work packages, and workforce data.
+1. Give planners a **bird’s-eye landing dashboard** plus **one visual plan** that already combines operations, Maintainance & Engineering (M&E) work packages, and workforce data.
 2. Cut routine planning time by generating a feasible schedule automatically.
 3. Make disruption replanning a one-action flow, not a rebuild from scratch.
 4. Put a personal, current schedule in every technician’s hand.
@@ -100,7 +98,6 @@ Stations, skills, rules, roles, integrations.
 - “Show me every turnaround at this station in the next 12 hours and which ones are already broken.”
 - “Turn this work package into a sequenced, staffed plan that fits the ground time.”
 - “The inbound is 40 minutes late — rebuild the plan without starting over.”
-- “Give each mechanic a list they can trust.”
 - “Tell me who is over-allocated and who is idle with the right ticket.”
 
 ---
@@ -115,6 +112,10 @@ Stations, skills, rules, roles, integrations.
 - Work-package → task breakdown and sequencing
 - Workforce board and assignment
 - Publish / lock plans
+
+
+### 5.2 Out of scope
+
 - Disruption alerts and replanning
 - Live progress and time capture
 - Technician mobile/tablet app
@@ -122,9 +123,6 @@ Stations, skills, rules, roles, integrations.
 - Reports for planning quality and execution
 - Configuration of stations, skills, shifts, and rules
 - Integrations: M&E, Flight Ops, HR/roster; optional tooling
-
-### 5.2 Out of scope
-
 - Authoring official approved maintenance data / AMP
 - Digital signature / CRS as system of record (can display status from M&E)
 - Financial costing of visits
@@ -200,18 +198,19 @@ Acceptance is written so design and engineering can test the UI, not only the ba
 | --- | --- | --- |
 | SH-01 | P0 | Implement IBM Carbon v11 UI Shell: `Header` + left `SideNav`. No `HeaderNavigation`. |
 | SH-02 | P0 | Theme is Carbon `g90` (Gray 90) with default IBM Blue interactive tokens. Do not introduce a custom palette. |
-| SH-03 | P0 | SideNav is a persistent **256px vertical** column on viewports ≥1280px (`isFixedNav`, `defaultExpanded`, `isRail=false`). |
+| SH-03 | P0 | On viewports ≥1280px the SideNav is a persistent expanded 256px column (`isFixedNav`, `defaultExpanded`, `isRail=false`). `Content` is the remaining width and is not covered by the nav. |
 | SH-04 | P0 | Header is 48px and contains only `HeaderName` (`Tech Ops` / `Assignment`) plus Alerts, Help, and Account actions. |
 | SH-05 | P0 | Primary target frame is Chrome on macOS at **1440×900**. Minimum desktop is **1280×800**. No horizontal page scrollbar at either size at 100% zoom. |
 | SH-06 | P0 | Vertical slicer menus in the SideNav: Station, Time window, Fleet, Shift, Status. Changing a slicer reslices dashboard, planner lists, workforce, alerts, horizon, and reports. |
 | SH-07 | P0 | Applied slicers appear as closable Carbon `Tag`s under the page title. Reset slicers returns defaults. |
 | SH-08 | P0 | Slicer defaults: All stations, Now–12h, All fleets, All shifts, All statuses. |
 | SH-09 | P1 | Slicers persist for the session and may be reflected in query params. |
-| SH-10 | P0 | Below 1280px, SideNav may overlay. The MacBook default must not use overlay. |
+| SH-10 | P0 | Below 1280px the SideNav may collapse off-canvas. Whenever it is expanded, it is still that 256px column and must not overlay or crop the main view. |
 
 **Acceptance**
 
 - A reviewer on a 13–14" MacBook in Chrome sees header, full SideNav labels, slicer menus, and the landing dashboard without panning sideways.
+- With the SideNav expanded, the header, full nav labels, and the landing dashboard are all visible. The nav does not cover the dashboard.
 - There are no top-of-page nav links besides the product name.
 
 ---

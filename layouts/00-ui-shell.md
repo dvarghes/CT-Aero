@@ -67,30 +67,22 @@ Design and accept against Google Chrome on macOS.
 **Hard rules**
 
 - `overflow-x: hidden` on `body` and shell. No page-level horizontal scrollbar.
-- SideNav + slicer column + dashboard must equal the viewport width at 1280 and 1440.
+- Expanded SideNav and `Content` sit side by side. Their widths sum to the viewport. The nav must not cover, overlap, or clip `#main-content`.
+- Expanded width is 256px, at every viewport. `Content` is the remainder (`100% - 256px`), with no max-width wrapper.
+- Collapsed SideNav (below 1280 only) is off-canvas and reserves no width. Opening it expands the same 256px column and shrinks `Content`; it does not overlay the main view.
 - First dashboard screen (KPIs + two analysis modules) must be visible at 900 height without horizontal cut-off.
 - Vertical scroll is allowed below the first dashboard band.
 - Test at Chrome 100% zoom. Do not require 80% zoom to see the layout.
 
-**Width math at 1440**
+**Width math**
 
 ```
-1440
-- 256  fixed SideNav (expanded labels)
-- 256  slicer column
-= 928  dashboard canvas
+viewport
+- 256  expanded SideNav (routes and slicers)
+= remainder  Content
 ```
 
-**Width math at 1280**
-
-```
-1280
-- 256  SideNav
-- 224  slicer column (compact)
-= 800  dashboard canvas
-```
-
-Below 1280 (not the MacBook target): collapse slicers into a `HeaderPanel` and keep SideNav as overlay. Do not make that the default desktop.
+1440 leaves a 1184px canvas. 1280 leaves a 1024px canvas.
 
 ---
 
@@ -205,7 +197,7 @@ Each `SideNavMenuItem` is one slicer value. Selecting it applies that slicer glo
 | Header | 48px tall, full viewport width, sticky |
 | SideNav desktop | 256px wide, `100vh - 48px` tall, vertical scroll inside nav if needed |
 | Slicer menus | inside SideNav, below routes |
-| Content | remaining width; no max-width wrapper |
+| Content | remainder after the expanded SideNav; starts at the nav’s right edge; no max-width wrapper |
 | Dashboard page pad | `$spacing-05` (16px) |
 | KPI tile min height | 88px |
 | Forbidden | any shell wider than the viewport |
@@ -342,7 +334,7 @@ Compact vertical list or slim timeline of the sliced window. Must not force hori
 │ Admin        │ OH-LWP  14:20  At risk  ██░░                 │
 │              │ D-AIGX  15:05  Delayed  ███░                 │
 └──────────────┴──────────────────────────────────────────────┘
-     256px                    928px canvas
+     256px                    1184px canvas
 ```
 
 At 1280, KPI tiles wrap 2×2 and Band C stacks. Still no horizontal scroll.
@@ -358,7 +350,7 @@ At 1280, KPI tiles wrap 2×2 and Band C stacks. Still no horizontal scroll.
 | Click KPI At risk | scroll to attention table |
 | Click attention row | Planner |
 | SideNav route | keep slicers |
-| Resize below 1280 | SideNav overlay; slicer menus still in SideNav |
+| Resize below 1280 | SideNav may collapse off-canvas. Expanded, it is still a 256px column and the main view keeps the remainder. Slicer menus stay in the SideNav. |
 | Chrome zoom 100% at 1440 | entire shell + Band A–D readable without sideways scroll |
 
 ---
@@ -452,6 +444,7 @@ Icons: `size={20}` only.
 - Theme is `g90` on header, SideNav, and dashboard. Interactive blue is Carbon default.
 - No horizontal navigation in the header.
 - SideNav is a 256px vertical column with route links and slicer menus.
+- Expanded SideNav (256px) and the main view do not overlap. The dashboard is fully visible to the right of the nav at 1440×900 and 1280×800.
 - Five slicers live in that column and reslice the dashboard immediately.
 - `/` shows KPI tiles, two analysis charts, and an attention table.
 - Chrome 1440×900 and 1280×800: no horizontal scrollbar, Band A–D usable.

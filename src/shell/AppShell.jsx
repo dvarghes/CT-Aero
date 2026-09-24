@@ -152,7 +152,7 @@ function ShellFrame({ children, isSideNavExpanded, onClickSideNavExpand }) {
   const navExpanded = isDesktop || isSideNavExpanded;
 
   return (
-    <>
+    <div className={navExpanded ? 'app-shell app-shell--nav-expanded' : 'app-shell'}>
       <Header aria-label="Assignment">
         <SkipToContent href="#main-content" />
         <HeaderMenuButton
@@ -199,8 +199,8 @@ function ShellFrame({ children, isSideNavExpanded, onClickSideNavExpand }) {
         aria-label="Side navigation"
         isRail={false}
         isChildOfHeader
-        isFixedNav={isDesktop}
-        isPersistent={isDesktop}
+        isFixedNav={navExpanded}
+        isPersistent={navExpanded}
         defaultExpanded
         expanded={navExpanded}
         href="#main-content"
@@ -303,7 +303,7 @@ function ShellFrame({ children, isSideNavExpanded, onClickSideNavExpand }) {
       <Content id="main-content" tabIndex={-1}>
         {children}
       </Content>
-    </>
+    </div>
   );
 }
 
