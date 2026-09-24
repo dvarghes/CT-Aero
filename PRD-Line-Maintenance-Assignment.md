@@ -133,14 +133,11 @@ Stations, skills, rules, roles, integrations.
 
 ## 6. Product principles
 
-1. **One plan, many roles.** Planner, supervisor, and technician see the same objects, different density.
-2. **AI drafts, humans publish.** No silent change to a live shift without a visible proposal.
-3. **Constraints are first-class UI**, not hidden validation errors after save.
-4. **Disruption is the default path**, not an edge case.
-5. **Apron-ready.** Mobile must work with poor connectivity and gloves-off-but-dirty hands.
-6. **Integrate, don’t duplicate** systems of record for flights, work cards, and people.
-7. **Vertical first.** Destinations and slicers live in a left column. Do not put primary IA or primary filters in the header.
-8. **One MacBook window.** If a widget needs horizontal panning on 1280×800 Chrome, it does not belong on the landing page.
+1. **One record, three densities.** Planner, supervisor, and technician share the same turnaround and tasks.
+2. **Draft ≠ live.** AI can propose; only a human publish updates the shift.
+3. **Constraints on the canvas.** Illegal or unworkable plans are visible before Publish.
+4. **Replan is the core loop.** Treat delays and shortages as the default workflow, not an exception screen.
+5. **Join systems; don’t replace them.** Flight Ops, M&E, and HR remain sources of truth.
 
 ---
 
