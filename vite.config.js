@@ -1,8 +1,24 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
-  plugins: [react()],
+const pagesBase = '/CT-Aero/';
+
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? pagesBase : '/',
+  plugins: [
+    react(),
+    {
+      name: 'github-pages-spa',
+      apply: 'build',
+      closeBundle() {
+        const dist = path.resolve('dist');
+        fs.copyFileSync(path.join(dist, 'index.html'), path.join(dist, '404.html'));
+        fs.writeFileSync(path.join(dist, '.nojekyll'), '');
+      },
+    },
+  ],
   server: {
     port: 5173,
     strictPort: true,
@@ -31,4 +47,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

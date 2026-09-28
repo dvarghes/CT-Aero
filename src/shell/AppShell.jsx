@@ -43,7 +43,7 @@ import {
   WINDOWS,
   windowLabel,
 } from '../slicers/model.js';
-import { useAppNavigate, useSlicerHref, useSlicers } from '../slicers/SlicerContext.jsx';
+import { useAppNavigate, useSlicerHref, useSlicers, withBase } from '../slicers/SlicerContext.jsx';
 
 function sized(Icon) {
   function SizedIcon(props) {
@@ -88,7 +88,7 @@ function ShellLink({ href, icon, children }) {
   const current = isCurrent(pathname, href);
   return (
     <SideNavLink
-      href={toHref(href)}
+      href={withBase(toHref(href))}
       renderIcon={icon}
       large={false}
       aria-current={current ? 'page' : undefined}
@@ -162,7 +162,7 @@ function ShellFrame({ children, isSideNavExpanded, onClickSideNavExpand }) {
           onClick={onClickSideNavExpand}
         />
         <HeaderName
-          href={toHref('/')}
+          href={withBase(toHref('/'))}
           prefix="Tech Ops"
           onClick={(event) => {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;

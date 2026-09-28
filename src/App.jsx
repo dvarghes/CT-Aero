@@ -9,9 +9,11 @@ import { PlanProvider } from './plan/PlanContext.jsx';
 import { AppShell } from './shell/AppShell.jsx';
 import { SlicerProvider } from './slicers/SlicerContext.jsx';
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename || undefined}>
       <Theme theme="g90">
         <SlicerProvider>
           <PlanProvider>

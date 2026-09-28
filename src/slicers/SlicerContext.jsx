@@ -78,6 +78,12 @@ export function useSlicers() {
   return value;
 }
 
+export function withBase(pathname) {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  if (!pathname.startsWith('/')) return pathname;
+  return `${base}${pathname}`;
+}
+
 export function useSlicerHref() {
   const { slicers } = useSlicers();
   const search = slicersToParams(slicers).toString();

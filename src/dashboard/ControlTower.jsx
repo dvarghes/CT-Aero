@@ -8,7 +8,7 @@ import { formatAge, formatGroundWindow, formatUtcRange, syncTitle } from '../for
 import { useNow } from '../hooks/useNow.js';
 import { useSlice } from '../hooks/useSlice.js';
 import { windowLabel } from '../slicers/model.js';
-import { useAppNavigate, useSlicerHref, useSlicers } from '../slicers/SlicerContext.jsx';
+import { useAppNavigate, useSlicerHref, useSlicers, withBase } from '../slicers/SlicerContext.jsx';
 import { useMinWidth } from '../hooks/useMinWidth.js';
 import { AttentionTable } from './AttentionTable.jsx';
 import { CapacityChart, StatusChart } from './Charts.jsx';
@@ -51,7 +51,7 @@ export function ControlTower() {
           <p className="kpi-value">{atRisk}</p>
           <p className="kpi-delta">{compareCount(atRisk, priorAtRisk)}</p>
         </ClickableTile>
-        <ClickableTile className="kpi-tile" href={toHref('/workforce')} onClick={(event) => {
+        <ClickableTile className="kpi-tile" href={withBase(toHref('/workforce'))} onClick={(event) => {
           if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
           event.preventDefault();
           go('/workforce');
@@ -60,7 +60,7 @@ export function ControlTower() {
           <p className="kpi-value">{fill.percent == null ? '—' : `${fill.percent}%`}</p>
           <p className="kpi-delta">{comparePoints(fill.percent, priorFill.percent)}</p>
         </ClickableTile>
-        <ClickableTile className="kpi-tile" href={toHref('/alerts')} onClick={(event) => {
+        <ClickableTile className="kpi-tile" href={withBase(toHref('/alerts'))} onClick={(event) => {
           if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
           event.preventDefault();
           go('/alerts');
