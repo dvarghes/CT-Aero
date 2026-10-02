@@ -30,7 +30,7 @@ Open http://localhost:5173/. The first start creates `server/data/assignment.db`
 
 The first refresh downloads the OpenSky aircraft database to `server/data/aircraftDatabase.csv` (gitignored) and imports it for tail and type lookups. Later refreshes reuse that file.
 
-`npm run build` writes the static site to `dist/` with base `/CT-Aero/`. GitHub Pages publishes that build to https://dvarghes.github.io/CT-Aero/. Pages has no database, so those screens report that the live operation is unavailable. Use `npm run dev`, or `npm run preview` at http://localhost:4173/CT-Aero/, to work against the database. Preview serves the production build and attaches the same API.
+`npm run build` writes the static site to `dist/` with base `/CT-Aero/`. GitHub Pages publishes that build to https://dvarghes.github.io/CT-Aero/. Pages has no database, so that site renders the bundled sample operation: stations, turnarounds, alerts, and task cards generated in the browser. `npm run dev`, and `npm run preview` at http://localhost:4173/CT-Aero/, read and write `server/data/assignment.db` instead. Preview serves the production build and attaches the same API.
 
 | Script | What it does |
 | --- | --- |
@@ -61,7 +61,7 @@ Anonymous OpenSky only reports airliners on the ground at HEL, FRA, and MUC at r
 
 ## Operation data
 
-`src/data/OperationContext.jsx` loads `GET /api/operation`. Slicers stay in the browser and in the URL. `src/data/slice.js` filters the loaded operation and computes the KPI deltas against the previous window of the same length.
+`src/data/OperationContext.jsx` loads `GET /api/operation` when the Vite server is running. On GitHub Pages that request fails, and the screens use the sample from `src/data/mock.js`, `src/data/roster.js`, and `src/data/workpackages.js`. Acknowledge, severity, and execution progress stay in the browser session. Delay, replan, and publish need the local database. Slicers stay in the browser and in the URL. `src/data/slice.js` filters the loaded operation and computes the KPI deltas against the previous window of the same length.
 
 SQLite lives at `server/data/assignment.db`.
 

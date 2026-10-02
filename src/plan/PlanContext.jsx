@@ -65,7 +65,7 @@ export function PlanProvider({ children }) {
   }, [operation]);
 
   useEffect(() => {
-    if (!state || revision.current === savedRevision.current) return undefined;
+    if (!state || operation.mode === 'sample' || revision.current === savedRevision.current) return undefined;
     const rev = revision.current;
     const handle = setTimeout(() => {
       savePlan({
@@ -77,7 +77,7 @@ export function PlanProvider({ children }) {
       }).catch(() => {});
     }, 500);
     return () => clearTimeout(handle);
-  }, [state]);
+  }, [state, operation.mode]);
 
   const updateTasks = useCallback((visitId, tasks, planPatch = {}) => {
     edit((current) => {

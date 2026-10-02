@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { applySampleWrite, buildSampleOperation } from './sampleOperation.js';
 
 const OperationContext = createContext(null);
 const EMPTY = {
@@ -15,31 +16,42 @@ const EMPTY = {
 };
 
 async function loadOperation() {
-  const response = await fetch('/api/operation');
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || `Operation API returned ${response.status}`);
+  const response = await fetch('/api/operation', { headers: { Accept: 'application/json' } });
+  const type = response.headers.get('content-type') || '';
+  if (!response.ok || !type.includes('application/json')) {
+    throw new Error('The operation database is not reachable.');
   }
   return response.json();
 }
 
+function sampleOperation() {
+  return { ...buildSampleOperation(), status: 'ready', error: '' };
+}
+
 export function OperationProvider({ children }) {
   const [operation, setOperation] = useState(EMPTY);
+  const operationRef = useRef(operation);
+  operationRef.current = operation;
 
   useEffect(() => {
     let cancelled = false;
     async function pull() {
       try {
         const body = await loadOperation();
-        if (!cancelled) setOperation({ ...body, status: 'ready', error: '' });
+        if (!cancelled) setOperation({ ...body, status: 'ready', mode: 'live', error: '' });
       } catch (error) {
-        if (!cancelled) {
-          setOperation((current) => ({
-            ...current,
-            status: 'error',
-            error: error.message || 'The operation database is not reachable.',
-          }));
-        }
+        if (cancelled) return;
+        setOperation((current) => {
+          if (current.mode === 'sample') return current;
+          if (current.mode === 'live') {
+            return {
+              ...current,
+              status: 'error',
+              error: error.message || 'The operation database is not reachable.',
+            };
+          }
+          return sampleOperation();
+        });
       }
     }
     pull();
@@ -51,6 +63,11 @@ export function OperationProvider({ children }) {
   }, []);
 
   const mutate = useCallback(async (path, body) => {
+    if (operationRef.current.mode === 'sample') {
+      const next = { ...applySampleWrite(operationRef.current, path, body), status: 'ready', error: '' };
+      setOperation(next);
+      return next;
+    }
     const response = await fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -58,7 +75,7 @@ export function OperationProvider({ children }) {
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
-    setOperation({ ...payload, status: 'ready', error: '' });
+    setOperation({ ...payload, status: 'ready', mode: 'live', error: '' });
     return payload;
   }, []);
 
