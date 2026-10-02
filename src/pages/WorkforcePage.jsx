@@ -3,7 +3,7 @@ import { Button, ProgressBar, Select, SelectItem, Tag, TextInput, Tile } from '@
 import { PageHeader } from '../components/PageHeader.jsx';
 import { personName } from '../data/roster.js';
 import { useSlice } from '../hooks/useSlice.js';
-import { coverageGap, doubleBookedPeople, fairnessHints, filterRoster, personLoad } from '../plan/engine.js';
+import { coverageGap, doubleBookedPeople, fairnessHints, filterRoster, personLoad, personQualifies } from '../plan/engine.js';
 import { usePlan } from '../plan/PlanContext.jsx';
 import { useSlicers } from '../slicers/SlicerContext.jsx';
 
@@ -140,8 +140,34 @@ export function WorkforcePage() {
                 if (personId) plan.assign(task.visit.id, task.id, personId);
               }}
             >
-              <span>{task.visit.tail} · {task.title}</span>
-              <span className="cell-meta">{task.assignees.map((personId) => personName(plan.people, personId)).join(', ') || 'Unassigned'}</span>
+              <span>
+                {task.visit.tail} · {task.title}
+                {task.assignees.some((personId) => {
+                  const person = plan.people.find((item) => item.id === personId);
+                  return person && !personQualifies(person, task.visit, task);
+                }) ? <Tag size="sm" type="magenta">Qualification</Tag> : null}
+              </span>
+              <Select
+                id={`assign-${task.id}`}
+                labelText="Assign"
+                size="sm"
+                value={task.assignees[0] || ''}
+                onChange={(event) => {
+                  if (event.target.value) plan.assign(task.visit.id, task.id, event.target.value);
+                }}
+              >
+                <SelectItem value="" text="Unassigned" />
+                {(() => {
+                  const qualified = plan.people.filter((person) => personQualifies(person, task.visit, task));
+                  const current = plan.people.find((person) => person.id === task.assignees[0]);
+                  const choices = current && !qualified.some((person) => person.id === current.id)
+                    ? [current, ...qualified]
+                    : qualified;
+                  return choices.map((person) => (
+                    <SelectItem key={person.id} value={person.id} text={person.name} />
+                  ));
+                })()}
+              </Select>
             </li>
           ))}
         </ul>

@@ -1,29 +1,29 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { turnarounds } from '../data/mock.js';
-import { defaultShifts, people as seedPeople } from '../data/roster.js';
-import { buildTasksByVisit, emptyPlan } from '../data/workpackages.js';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { savePlan, useOperation } from '../data/OperationContext.jsx';
 import { blockingConflicts, conflictsForVisit, diffSnapshots, generateSchedule } from './engine.js';
 
-const STORAGE_KEY = 'assignment-plan-v1';
 const PlanContext = createContext(null);
 
-function freshState() {
-  const tasksByVisit = buildTasksByVisit();
-  const plans = {};
-  for (const visit of turnarounds) plans[visit.id] = emptyPlan();
-  return { people: seedPeople, tasksByVisit, plans, shifts: defaultShifts };
+function emptyPlan() {
+  return {
+    state: 'Draft',
+    blockOnConflicts: true,
+    licenseOverride: '',
+    publishOverride: '',
+    visitNotes: '',
+    versions: [],
+    lastGenerateOk: null,
+    lastGenerateReason: '',
+  };
 }
 
-function loadState() {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return freshState();
-    const saved = JSON.parse(raw);
-    if (!saved.tasksByVisit || !saved.plans || !saved.people) return freshState();
-    return saved;
-  } catch {
-    return freshState();
-  }
+function fromOperation(operation) {
+  return {
+    people: operation.people,
+    tasksByVisit: operation.tasksByVisit,
+    plans: operation.plans,
+    shifts: operation.shifts,
+  };
 }
 
 function renumber(tasks) {
@@ -31,15 +31,56 @@ function renumber(tasks) {
 }
 
 export function PlanProvider({ children }) {
-  const [state, setState] = useState(loadState);
-  const visitsById = useMemo(() => new Map(turnarounds.map((visit) => [visit.id, visit])), []);
+  const operation = useOperation();
+  const [state, setPlanState] = useState(null);
+  const revision = useRef(0);
+  const savedRevision = useRef(0);
+  const visitsById = useMemo(
+    () => new Map(operation.turnarounds.map((visit) => [visit.id, visit])),
+    [operation.turnarounds],
+  );
+
+  const edit = useCallback((updater) => {
+    setPlanState((current) => {
+      if (!current) return current;
+      revision.current += 1;
+      return updater(current);
+    });
+  }, []);
 
   useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (operation.status !== 'ready') return;
+    setPlanState((current) => {
+      if (!current || revision.current === savedRevision.current) return fromOperation(operation);
+      const tasksByVisit = { ...current.tasksByVisit };
+      const plans = { ...current.plans };
+      for (const [id, tasks] of Object.entries(operation.tasksByVisit)) {
+        if (!tasksByVisit[id]) {
+          tasksByVisit[id] = tasks;
+          plans[id] = operation.plans[id] ?? emptyPlan();
+        }
+      }
+      return { ...current, people: operation.people, tasksByVisit, plans };
+    });
+  }, [operation]);
+
+  useEffect(() => {
+    if (!state || revision.current === savedRevision.current) return undefined;
+    const rev = revision.current;
+    const handle = setTimeout(() => {
+      savePlan({
+        tasksByVisit: state.tasksByVisit,
+        plans: state.plans,
+        shifts: state.shifts,
+      }).then((response) => {
+        if (response.ok && revision.current === rev) savedRevision.current = rev;
+      }).catch(() => {});
+    }, 500);
+    return () => clearTimeout(handle);
   }, [state]);
 
   const updateTasks = useCallback((visitId, tasks, planPatch = {}) => {
-    setState((current) => {
+    edit((current) => {
       const plan = current.plans[visitId] ?? emptyPlan();
       const nextState = plan.state === 'Draft' ? plan.state : 'Draft';
       return {
@@ -51,9 +92,42 @@ export function PlanProvider({ children }) {
         },
       };
     });
-  }, []);
+  }, [edit]);
 
   const api = useMemo(() => {
+    if (!state) {
+      return {
+        people: [],
+        tasksByVisit: {},
+        plans: {},
+        shifts: [],
+        visitsById,
+        conflicts: () => [],
+        blocking: () => [],
+        generate() {},
+        patchTask() {},
+        assign() {},
+        move() {},
+        reorder() {},
+        split() {},
+        defer() {},
+        markNa() {},
+        addAdHoc() {},
+        enrich() {},
+        setNotes() {},
+        setTaskNotes() {},
+        setLicenseOverride() {},
+        setBlock() {},
+        markReady() {},
+        publish() {},
+        lock() {},
+        complete() {},
+        versionDiff: () => [],
+        updateShift() {},
+        allocateSlice() {},
+        balanceSlice() {},
+      };
+    }
     const visitOf = (id) => visitsById.get(id);
 
     function conflicts(visitId) {
@@ -78,7 +152,7 @@ export function PlanProvider({ children }) {
         const visit = visitOf(visitId);
         if (!visit) return;
         const result = generateSchedule(visit, state.tasksByVisit[visitId] ?? [], state.people);
-        setState((current) => ({
+        edit((current) => ({
           ...current,
           tasksByVisit: { ...current.tasksByVisit, [visitId]: result.tasks },
           plans: {
@@ -192,7 +266,7 @@ export function PlanProvider({ children }) {
         updateTasks(visitId, tasks);
       },
       setNotes(visitId, visitNotes) {
-        setState((current) => ({
+        edit((current) => ({
           ...current,
           plans: { ...current.plans, [visitId]: { ...current.plans[visitId], visitNotes } },
         }));
@@ -204,20 +278,20 @@ export function PlanProvider({ children }) {
         updateTasks(visitId, tasks);
       },
       setLicenseOverride(visitId, licenseOverride) {
-        setState((current) => ({
+        edit((current) => ({
           ...current,
           plans: { ...current.plans, [visitId]: { ...current.plans[visitId], licenseOverride } },
         }));
       },
       setBlock(visitId, blockOnConflicts) {
-        setState((current) => ({
+        edit((current) => ({
           ...current,
           plans: { ...current.plans, [visitId]: { ...current.plans[visitId], blockOnConflicts } },
         }));
       },
       markReady(visitId) {
         if (blockingConflicts(conflicts(visitId), state.plans[visitId]).length > 0) return;
-        setState((current) => ({
+        edit((current) => ({
           ...current,
           plans: { ...current.plans, [visitId]: { ...current.plans[visitId], state: 'Ready' } },
         }));
@@ -233,7 +307,7 @@ export function PlanProvider({ children }) {
           state: 'Published',
           tasks: snapshot,
         };
-        setState((current) => ({
+        edit((current) => ({
           ...current,
           plans: {
             ...current.plans,
@@ -244,7 +318,7 @@ export function PlanProvider({ children }) {
       lock(visitId) {
         const plan = state.plans[visitId];
         if (plan.state !== 'Published') return;
-        setState((current) => ({
+        edit((current) => ({
           ...current,
           plans: { ...current.plans, [visitId]: { ...plan, state: 'Locked' } },
         }));
@@ -252,7 +326,7 @@ export function PlanProvider({ children }) {
       complete(visitId) {
         const plan = state.plans[visitId];
         if (plan.state !== 'Locked') return;
-        setState((current) => ({
+        edit((current) => ({
           ...current,
           plans: { ...current.plans, [visitId]: { ...plan, state: 'Completed' } },
         }));
@@ -263,13 +337,13 @@ export function PlanProvider({ children }) {
         return diffSnapshots(versions[versions.length - 2].tasks, versions[versions.length - 1].tasks);
       },
       updateShift(id, patch) {
-        setState((current) => ({
+        edit((current) => ({
           ...current,
           shifts: current.shifts.map((shift) => (shift.id === id ? { ...shift, ...patch } : shift)),
         }));
       },
       allocateSlice(visitIds) {
-        setState((current) => {
+        edit((current) => {
           const tasksByVisit = { ...current.tasksByVisit };
           const plans = { ...current.plans };
           for (const visitId of visitIds) {
@@ -289,7 +363,7 @@ export function PlanProvider({ children }) {
         });
       },
       balanceSlice(visitIds) {
-        setState((current) => {
+        edit((current) => {
           const tasksByVisit = { ...current.tasksByVisit };
           const load = {};
           for (const person of current.people) load[person.id] = 0;
@@ -330,7 +404,7 @@ export function PlanProvider({ children }) {
         });
       },
     };
-  }, [state, updateTasks, visitsById]);
+  }, [state, updateTasks, visitsById, edit]);
 
   return <PlanContext.Provider value={api}>{children}</PlanContext.Provider>;
 }

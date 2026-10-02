@@ -11,8 +11,8 @@ import {
 } from '@carbon/react';
 import { PageHeader } from '../components/PageHeader.jsx';
 import { StatusTag } from '../components/StatusTag.jsx';
+import { useOperation } from '../data/OperationContext.jsx';
 import { personName } from '../data/roster.js';
-import { getTurnaround } from '../data/mock.js';
 import { formatGroundWindow, formatHours, formatUtcRange } from '../format.js';
 import { useMinWidth } from '../hooks/useMinWidth.js';
 import { instructionSuggestions, windowMinutes } from '../plan/engine.js';
@@ -34,9 +34,10 @@ const CHIP = {
 export function PlannerPage() {
   const { id } = useParams();
   const { slicers } = useSlicers();
+  const operation = useOperation();
   const planApi = usePlan();
   const wide = useMinWidth(1440);
-  const visit = getTurnaround(id);
+  const visit = planApi.visitsById.get(id);
   const [editing, setEditing] = useState(null);
   const [adHoc, setAdHoc] = useState({ title: '', durationMin: 30 });
   const [focusId, setFocusId] = useState(null);
@@ -56,7 +57,7 @@ export function PlannerPage() {
   if (!visit || !plan) {
     return (
       <div className="tower">
-        <PageHeader title="Planner" subtitle="This turnaround is not in the mock data." />
+        <PageHeader title="Planner" subtitle={operation.status === 'ready' ? 'This turnaround is not in the live operation.' : 'Loading the live operation…'} />
       </div>
     );
   }

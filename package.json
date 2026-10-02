@@ -9,7 +9,11 @@
   "scripts": {
     "dev": "node scripts/run.cjs",
     "build": "node scripts/run.cjs build",
-    "preview": "node scripts/run.cjs preview"
+    "preview": "node scripts/run.cjs preview",
+    "db:migrate": "node scripts/run-tool.cjs server/db/migrate.js",
+    "db:seed": "node scripts/run-tool.cjs server/db/seed.js",
+    "db:refresh": "node scripts/run-tool.cjs server/refresh-flights.js",
+    "db:watch": "node scripts/run-tool.cjs server/watch-flights.js"
   },
   "dependencies": {
     "@carbon/charts": "1.27.20",

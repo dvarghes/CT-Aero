@@ -48,8 +48,6 @@ This causes low wrench time, maintenance-driven delays, supervisor overload, and
 4. Put a personal, current schedule in every technician’s hand.
 5. Expose constraints (skills, rest, ground time, parts/tools) in the UI so overrides stay legal and executable.
 6. Create a feedback loop from actuals back into estimates and future plans.
-7. Let users **slice** the whole desktop UI from a vertical menu (station, window, fleet, shift, status) without a horizontal filter bar.
-8. Keep the desktop chrome and landing view readable **end-to-end in MacBook Chrome** without sideways scrolling.
 
 ### 3.2 Success metrics (targets to validate in design partners)
 

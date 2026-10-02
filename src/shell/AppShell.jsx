@@ -29,10 +29,13 @@ import {
   Time,
   UserActivity,
   UserAvatar,
+  InProgress,
   UserMultiple,
   WarningAlt,
 } from '@carbon/icons-react';
 import { useLocation } from 'react-router-dom';
+import { useOperation } from '../data/OperationContext.jsx';
+import { formatRefreshParts } from '../format.js';
 import { useMinWidth } from '../hooks/useMinWidth.js';
 import { useSlice } from '../hooks/useSlice.js';
 import {
@@ -57,6 +60,7 @@ const DashboardIcon = sized(Dashboard);
 const CalendarIcon = sized(Calendar);
 const WorkforceIcon = sized(UserMultiple);
 const AlertsIcon = sized(WarningAlt);
+const ExecutionIcon = sized(InProgress);
 const HorizonIcon = sized(Events);
 const ReportsIcon = sized(ChartLine);
 const SettingsIcon = sized(Settings);
@@ -72,6 +76,7 @@ const ROUTES = [
   { href: '/planner', label: 'Planner', icon: CalendarIcon },
   { href: '/workforce', label: 'Workforce', icon: WorkforceIcon },
   { href: '/alerts', label: 'Alerts', icon: AlertsIcon },
+  { href: '/execution', label: 'Execution', icon: ExecutionIcon },
   { href: '/horizon', label: 'Horizon', icon: HorizonIcon },
   { href: '/reports', label: 'Reports', icon: ReportsIcon },
 ];
@@ -142,6 +147,22 @@ function statusTitle(status) {
   return `Status · ${status.length}`;
 }
 
+function LiveDataTime() {
+  const operation = useOperation();
+  const refreshed = operation.status === 'ready' ? operation.sync.flightOps : null;
+  const parts = formatRefreshParts(refreshed);
+  return (
+    <time
+      className="header-live-time"
+      dateTime={parts ? new Date(refreshed).toISOString() : undefined}
+      title={parts ? `Live data refreshed ${parts.text}` : 'Live data time is unavailable'}
+    >
+      <span className="header-live-time__date">{parts ? parts.date : '—'}</span>
+      {parts ? <span className="header-live-time__clock">{parts.time}</span> : null}
+    </time>
+  );
+}
+
 function ShellFrame({ children, isSideNavExpanded, onClickSideNavExpand }) {
   const isDesktop = useMinWidth(1280);
   const go = useAppNavigate();
@@ -173,6 +194,7 @@ function ShellFrame({ children, isSideNavExpanded, onClickSideNavExpand }) {
           Assignment
         </HeaderName>
         <HeaderGlobalBar>
+          <LiveDataTime />
           <HeaderGlobalAction
             aria-label="Alerts"
             className="header-alerts"

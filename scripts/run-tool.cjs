@@ -1,5 +1,4 @@
-// Vite 8 needs node:util styleText (Node 20.12+, 21.7+, or 22+).
-// npm scripts use whichever `node` is first on PATH. Re-exec with a new enough binary when that one is older.
+// Re-exec a repo script with a Node that can run Vite and node:sqlite.
 var childProcess = require('child_process');
 var fs = require('fs');
 var path = require('path');
@@ -13,10 +12,10 @@ function parseVersion(raw) {
   };
 }
 
-function supportsVite(version) {
+function supportsRuntime(version) {
   if (version.major >= 22) return true;
   if (version.major === 21) return version.minor >= 7;
-  if (version.major === 20) return version.minor > 12 || (version.minor === 12);
+  if (version.major === 20) return version.minor > 12 || version.minor === 12;
   return false;
 }
 
@@ -55,25 +54,31 @@ function selectNode() {
   var best = null;
   nodeCandidates().forEach(function (candidate) {
     var version = versionOf(candidate);
-    if (!version || !supportsVite(version)) return;
+    if (!version || !supportsRuntime(version)) return;
     if (!best || newer(version, best.version)) best = { path: candidate, version: version };
   });
   return best;
 }
 
-var selected = selectNode();
-if (!selected) {
-  console.error('Vite needs Node.js 20.12+, 21.7+, or 22+ (node:util styleText).');
-  console.error('The node on PATH is ' + process.version + '. Install a current Node.js and run npm run dev again.');
+var script = process.argv[2];
+if (!script) {
+  console.error('Usage: node scripts/run-tool.cjs <script> [args]');
   process.exit(1);
 }
 
-var viteBin = path.join(__dirname, '..', 'node_modules', 'vite', 'bin', 'vite.js');
+var selected = selectNode();
+if (!selected) {
+  console.error('This script needs Node.js 22+ (node:sqlite).');
+  console.error('The node on PATH is ' + process.version + '.');
+  process.exit(1);
+}
+
 var child = childProcess.spawn(selected.path, [
   '--disable-warning=ExperimentalWarning',
-  viteBin,
-].concat(process.argv.slice(2)), {
+  script,
+].concat(process.argv.slice(3)), {
   stdio: 'inherit',
+  cwd: path.join(__dirname, '..'),
   windowsHide: false,
 });
 

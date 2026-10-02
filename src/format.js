@@ -1,5 +1,3 @@
-import { SYNC } from './data/mock.js';
-
 const timeOptions = {
   hour: '2-digit',
   minute: '2-digit',
@@ -38,17 +36,35 @@ export function formatAge(fromMs, toMs) {
   return `${Math.round(minutes / 60)}h`;
 }
 
-export function syncTitle() {
-  const format = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'UTC',
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hourCycle: 'h23',
-  });
-  return `M&E ${format.format(SYNC.me)} UTC · Flight Ops ${format.format(SYNC.flightOps)} UTC · HR ${format.format(SYNC.hr)} UTC`;
+const refreshDateFormat = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'UTC',
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+});
+
+const refreshTimeFormat = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'UTC',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
+/** Date and clock time of the last successful live refresh, in UTC. */
+export function formatRefreshParts(ms) {
+  if (ms == null || Number.isNaN(ms)) return null;
+  const date = refreshDateFormat.format(ms);
+  const time = `${refreshTimeFormat.format(ms)} UTC`;
+  return { date, time, text: `${date}, ${time}` };
+}
+
+export function formatRefreshStamp(ms) {
+  return formatRefreshParts(ms)?.text ?? '—';
+}
+
+export function syncTitle(sync) {
+  const stamp = (value) => formatRefreshStamp(value);
+  return `M&E ${stamp(sync?.me)} · Flight Ops ${stamp(sync?.flightOps)} · HR ${stamp(sync?.hr)}`;
 }
 
 export function formatHours(value) {

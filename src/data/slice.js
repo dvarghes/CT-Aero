@@ -1,5 +1,4 @@
 import { STATIONS, WINDOW_HOURS } from '../slicers/model.js';
-import { alerts, now, turnarounds } from './mock.js';
 
 const NEEDS_ACTION = ['At risk', 'Delayed', 'Blocked'];
 
@@ -27,12 +26,6 @@ const STATUS_ORDER = [
   'Delayed',
   'At risk',
 ];
-
-const CREW = {
-  HEL: { Day: 12, Evening: 9, Night: 6 },
-  FRA: { Day: 16, Evening: 12, Night: 7 },
-  MUC: { Day: 10, Evening: 8, Night: 5 },
-};
 
 function windowMs(id) {
   return (WINDOW_HOURS[id] ?? 12) * 3600000;
@@ -81,12 +74,14 @@ export function statusMix(visits) {
     .map((status) => ({ group: 'Turnarounds', key: status, value: counts.get(status) }));
 }
 
-function availableByStation(slicers, stations) {
+function availableByStation(slicers, stations, people) {
   const shifts = slicers.shift === 'All shifts' ? ['Day', 'Evening', 'Night'] : [slicers.shift];
   const scale = (WINDOW_HOURS[slicers.window] ?? 12) / 24;
   return stations.map((station) => {
-    const crew = shifts.reduce((total, shift) => total + CREW[station][shift], 0);
-    return { station, hours: Math.round(crew * 8 * scale) };
+    const hours = people
+      .filter((person) => person.station === station && person.availability === 'on shift' && shifts.includes(person.shift))
+      .reduce((total, person) => total + person.maxHours, 0);
+    return { station, hours: Math.round(hours * scale) };
   });
 }
 
@@ -113,7 +108,7 @@ export function attentionOf(visits, slicers) {
   });
 }
 
-function alertsInRange(slicers, start, end) {
+function alertsInRange(alerts, turnarounds, slicers, start, end) {
   const byId = new Map(turnarounds.map((visit) => [visit.id, visit]));
   return alerts.filter((alert) => {
     const visit = byId.get(alert.turnaroundId);
@@ -122,9 +117,12 @@ function alertsInRange(slicers, start, end) {
   });
 }
 
-export function buildSlice(slicers) {
+export function buildSlice(slicers, operation) {
+  const turnarounds = operation?.turnarounds ?? [];
+  const alerts = operation?.alerts ?? [];
+  const people = operation?.people ?? [];
   const duration = windowMs(slicers.window);
-  const currentStart = now.getTime();
+  const currentStart = Date.now();
   const currentEnd = currentStart + duration;
   const priorStart = currentStart - duration;
   const current = turnarounds.filter((visit) => matchesBase(visit, slicers) && overlaps(visit, currentStart, currentEnd));
@@ -137,12 +135,12 @@ export function buildSlice(slicers) {
   return {
     current,
     prior,
-    alerts: alertsInRange(slicers, currentStart, currentEnd),
-    priorAlerts: alertsInRange(slicers, priorStart, currentStart),
+    alerts: alertsInRange(alerts, turnarounds, slicers, currentStart, currentEnd),
+    priorAlerts: alertsInRange(alerts, turnarounds, slicers, priorStart, currentStart),
     attention: attentionOf(current, slicers),
     stations,
     capacity: {
-      available: availableByStation(slicers, stations),
+      available: availableByStation(slicers, stations, people),
       required: requiredByStation(current, stations),
     },
   };

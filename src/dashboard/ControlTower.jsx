@@ -2,7 +2,7 @@ import { ClickableTile, Tile } from '@carbon/react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader.jsx';
 import { StatusTag } from '../components/StatusTag.jsx';
-import { SYNC } from '../data/mock.js';
+import { useOperation } from '../data/OperationContext.jsx';
 import { compareCount, comparePoints, needsActionCount, staffFill } from '../data/slice.js';
 import { formatAge, formatGroundWindow, formatUtcRange, syncTitle } from '../format.js';
 import { useNow } from '../hooks/useNow.js';
@@ -13,11 +13,21 @@ import { useMinWidth } from '../hooks/useMinWidth.js';
 import { AttentionTable } from './AttentionTable.jsx';
 import { CapacityChart, StatusChart } from './Charts.jsx';
 
+function feedAge(value, tick) {
+  if (value == null) return '—';
+  return formatAge(value, tick);
+}
+
 function SyncSubtitle() {
   const tick = useNow();
   const { slicers } = useSlicers();
-  const text = `${slicers.station} · ${windowLabel(slicers.window)} · M&E ${formatAge(SYNC.me, tick)} · Flight Ops ${formatAge(SYNC.flightOps, tick)} · HR ${formatAge(SYNC.hr, tick)}`;
-  return <PageHeader title="Control tower" subtitle={text} subtitleTitle={syncTitle()} />;
+  const operation = useOperation();
+  const text = operation.status === 'error'
+    ? 'Live operation is unavailable. Start the app with npm run dev so the screens can read the database.'
+    : operation.status !== 'ready'
+      ? 'Loading the live operation…'
+      : `${slicers.station} · ${windowLabel(slicers.window)} · M&E ${feedAge(operation.sync.me, tick)} · Flight Ops ${feedAge(operation.sync.flightOps, tick)} · HR ${feedAge(operation.sync.hr, tick)}`;
+  return <PageHeader title="Control tower" subtitle={text} subtitleTitle={operation.status === 'ready' ? syncTitle(operation.sync) : undefined} />;
 }
 
 export function ControlTower() {

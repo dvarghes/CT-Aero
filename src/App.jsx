@@ -1,10 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Theme } from '@carbon/react';
 import { ControlTower } from './dashboard/ControlTower.jsx';
+import { AlertsPage } from './pages/AlertsPage.jsx';
+import { ExecutionPage } from './pages/ExecutionPage.jsx';
 import { ModulePage } from './pages/ModulePage.jsx';
 import { PlannerList } from './pages/PlannerList.jsx';
 import { PlannerPage } from './pages/PlannerPage.jsx';
 import { WorkforcePage } from './pages/WorkforcePage.jsx';
+import { OperationProvider } from './data/OperationContext.jsx';
 import { PlanProvider } from './plan/PlanContext.jsx';
 import { AppShell } from './shell/AppShell.jsx';
 import { SlicerProvider } from './slicers/SlicerContext.jsx';
@@ -16,6 +19,7 @@ export default function App() {
     <BrowserRouter basename={basename || undefined}>
       <Theme theme="g90">
         <SlicerProvider>
+          <OperationProvider>
           <PlanProvider>
           <AppShell>
             <Routes>
@@ -23,7 +27,8 @@ export default function App() {
               <Route path="/planner" element={<PlannerList />} />
               <Route path="/planner/:id" element={<PlannerPage />} />
               <Route path="/workforce" element={<WorkforcePage />} />
-              <Route path="/alerts" element={<ModulePage id="alerts" />} />
+              <Route path="/alerts" element={<AlertsPage />} />
+              <Route path="/execution" element={<ExecutionPage />} />
               <Route path="/horizon" element={<ModulePage id="horizon" />} />
               <Route path="/reports" element={<ModulePage id="reports" />} />
               <Route path="/admin" element={<ModulePage id="admin" />} />
@@ -31,6 +36,7 @@ export default function App() {
             </Routes>
           </AppShell>
           </PlanProvider>
+          </OperationProvider>
         </SlicerProvider>
       </Theme>
     </BrowserRouter>
